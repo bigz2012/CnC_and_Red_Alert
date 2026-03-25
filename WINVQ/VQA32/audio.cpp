@@ -122,7 +122,11 @@ static VQAHandleP *VQAP = NULL;
 static long AudioFlags = 0;
 static long TimerSysCount = 0;
 static long TimerIntCount = 0;
+#if VQASDL_SOUND
+static SDL_TimerID VQATimer = 0;
+#else
 static uint16_t VQATimer = 0;
+#endif
 static long TimerMethod;
 static long VQATickCount = 0;
 #endif /* VQAAUDIO_ON */
@@ -228,7 +232,11 @@ long VQA_StartTimerInt(VQAHandleP *vqap, long init)
 
 	/* Register the VQA_TickCount timer event. */
 	if ((AudioFlags & VQAAUDF_HMITIMER) == (HMI_UNINIT<<VQAAUDB_HMITIMER)) {
-		// TODO: add timer (VQATimer)
+		/* Use SDL timer as a fallback tick counter (VQA_TIMETICKS = 60 Hz) */
+		VQATimer = SDL_AddTimer(1000 / VQA_TIMETICKS, [](Uint32 interval, void *) -> Uint32 {
+			VQATickCount++;
+			return interval;
+		}, NULL);
 
 		if (VQATimer){
 
@@ -289,7 +297,11 @@ void VQA_StopTimerInt(VQAHandleP *vqap)
 	if (((AudioFlags & VQAAUDF_HMITIMER) == (HMI_VQAINIT<<VQAAUDB_HMITIMER))
 			&& (TimerIntCount == 0)) {
 
-		// TODO: remove timer
+		/* Remove the SDL timer */
+		if (VQATimer) {
+			SDL_RemoveTimer(VQATimer);
+			VQATimer = 0;
+		}
 		AudioFlags &= ~VQAAUDF_HMITIMER;
 	} else {
 		AudioFlags &= ~VQAAUDF_HMITIMER;
@@ -530,7 +542,10 @@ void VQA_StopAudio(VQAHandleP *vqap)
 
 		//audio->TimerHandle = NULL;
 
-		// TODO: stop buffer
+		/* Clear the SDL audio stream buffer */
+		if (SDLStream) {
+			SDL_AudioStreamClear(SDLStream);
+		}
 
 		audio->Flags &= ~VQAAUDF_ISPLAYING;
 		AudioFlags &= ~VQAAUDF_ISPLAYING;
@@ -696,7 +711,8 @@ void VQA_ResumeAudio(void)
 
 			if (AudioFlags & VQAAUDF_ISPLAYING && VQAAudioPaused) {
 
-				// TODO: resume
+				/* Resume SDL audio playback */
+				SDL_PauseAudioDevice(VQAP->Config.AudioDeviceID, 0);
 				VQAAudioPaused = false;
 			}
 		//}
