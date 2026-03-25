@@ -98,6 +98,29 @@ void ScrollClass::AI(KeyNumType &input, int x, int y)
 
 
 	/*
+	**	WASD keyboard scrolling -- check if keys are held down for smooth continuous scroll.
+	*/
+	if (Keyboard->Down(KN_W) || Keyboard->Down(KN_A) || Keyboard->Down(KN_S) || Keyboard->Down(KN_D)) {
+		int distance = 0x0020 * RESFACTOR;
+		if (Keyboard->Down(KN_W)) {
+			Map.Scroll_Map(DIR_N, distance, true);
+			player_scrolled = true;
+		}
+		if (Keyboard->Down(KN_S)) {
+			Map.Scroll_Map(DIR_S, distance, true);
+			player_scrolled = true;
+		}
+		if (Keyboard->Down(KN_A)) {
+			Map.Scroll_Map(DIR_W, distance, true);
+			player_scrolled = true;
+		}
+		if (Keyboard->Down(KN_D)) {
+			Map.Scroll_Map(DIR_E, distance, true);
+			player_scrolled = true;
+		}
+	}
+
+	/*
 	**	If rubber band mode is in progress, then don't allow scrolling of the tactical map.
 	*/
 	if (!IsRubberBand /*&& !IsTentative*/) {
