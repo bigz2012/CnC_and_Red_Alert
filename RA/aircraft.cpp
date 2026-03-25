@@ -1198,7 +1198,7 @@ int AircraftClass::Mission_Unload(void)
 						/*
 						**	Break off radio contact with the helipad it is taking off from.
 						*/
-						if (In_Radio_Contact() && Map[Coord].Cell_Building() == Contact_With_Whom()) {
+						if (In_Radio_Contact() && Contact_With_Whom()->What_Am_I() == RTTI_BUILDING) {
 							Transmit_Message(RADIO_OVER_OUT);
 						}
 					} else  {
@@ -1648,9 +1648,12 @@ int AircraftClass::Mission_Move(void)
 					Set_Speed(0xFF);
 
 					/*
-					**	After takeoff is complete, break radio contact.
+					**	After takeoff is complete, break radio contact with the
+					**	helipad/airstrip. Always break contact when airborne, not
+					**	just when physically on top of the building, to prevent
+					**	stale radio contacts that block other aircraft from landing.
 					*/
-					if (In_Radio_Contact() && Map[Coord].Cell_Building() == Contact_With_Whom()) {
+					if (In_Radio_Contact() && Contact_With_Whom()->What_Am_I() == RTTI_BUILDING) {
 						Transmit_Message(RADIO_OVER_OUT);
 					}
 
@@ -1774,7 +1777,7 @@ int AircraftClass::Mission_Move(void)
 					**	After takeoff is complete, break radio contact with any helipad that this
 					**	helicopter is taking off from.
 					*/
-					if (In_Radio_Contact() && Map[Coord].Cell_Building() == Contact_With_Whom()) {
+					if (In_Radio_Contact() && Contact_With_Whom()->What_Am_I() == RTTI_BUILDING) {
 						Transmit_Message(RADIO_OVER_OUT);
 					}
 
@@ -2441,7 +2444,7 @@ int AircraftClass::Mission_Attack(void)
 					/*
 					**	Break off radio contact with the helipad it is taking off from.
 					*/
-					if (In_Radio_Contact() && Map[Coord].Cell_Building() == Contact_With_Whom()) {
+					if (In_Radio_Contact() && Contact_With_Whom()->What_Am_I() == RTTI_BUILDING) {
 						Transmit_Message(RADIO_OVER_OUT);
 					}
 
@@ -3255,9 +3258,10 @@ int AircraftClass::Mission_Enter(void)
 			if (Process_Take_Off()) {
 				/*
 				**	After takeoff is complete, break radio contact with any helipad that this
-				**	helicopter is taking off from.
+				**	helicopter is taking off from. Always break contact when airborne to
+				**	prevent stale contacts that block other aircraft from landing.
 				*/
-				if (In_Radio_Contact() && Map[Coord].Cell_Building() == Contact_With_Whom()) {
+				if (In_Radio_Contact() && Contact_With_Whom()->What_Am_I() == RTTI_BUILDING) {
 					Transmit_Message(RADIO_OVER_OUT);
 				}
 				Status = ALTITUDE;
