@@ -79,6 +79,10 @@
 
 #include	"function.h"
 
+void SidebarClass::SBGadgetClass::Reposition(void) {
+	X = ScreenWidth - (int)SIDE_WIDTH * RESFACTOR + 8 * RESFACTOR;
+}
+
 
 void * SidebarClass::SidebarShape = NULL;
 void * SidebarClass::SidebarMiddleShape = NULL;
@@ -167,9 +171,10 @@ SidebarClass::SidebarClass(void) :
 	new (&Column[0]) StripClass(InitClass());
 	new (&Column[1]) StripClass(InitClass());
 
-	Column[0].X = COLUMN_ONE_X * RESFACTOR;
+	int sb_x = ScreenWidth - SIDE_WIDTH * RESFACTOR;
+	Column[0].X = sb_x + 8 * RESFACTOR;
 	Column[0].Y = COLUMN_ONE_Y * RESFACTOR;
-	Column[1].X = COLUMN_TWO_X * RESFACTOR;
+	Column[1].X = sb_x + (8 + ((SIDE_WIDTH-16)/2) + 3) * RESFACTOR;
 	Column[1].Y = COLUMN_TWO_Y * RESFACTOR;
 }
 
@@ -228,7 +233,7 @@ void SidebarClass::One_Time(void)
 	**	code so that as the sidebar buildable buttons scroll, they get properly
 	**	clipped at the top and bottom edges.
 	*/
-	WindowList[WINDOW_SIDEBAR][WINDOWX] = ((SIDE_X+8))  * RESFACTOR;
+	WindowList[WINDOW_SIDEBAR][WINDOWX] = ScreenWidth - SIDE_WIDTH * RESFACTOR + 8 * RESFACTOR;
 	WindowList[WINDOW_SIDEBAR][WINDOWY] = (SIDE_Y + 1 + TOP_HEIGHT) * RESFACTOR;
 	WindowList[WINDOW_SIDEBAR][WINDOWWIDTH] = (SIDE_WIDTH) * RESFACTOR;
 	WindowList[WINDOW_SIDEBAR][WINDOWHEIGHT] = (StripClass::MAX_VISIBLE * StripClass::OBJECT_HEIGHT) * RESFACTOR;
@@ -309,9 +314,11 @@ void SidebarClass::Init_IO(void)
 	*/
 	if (!Debug_Map) {
 
+		int sb_x = ScreenWidth - SIDE_WIDTH * RESFACTOR;
+
 		Repair.IsSticky = true;
 		Repair.ID = BUTTON_REPAIR;
-		Repair.X = (0x1f2/2)*RESFACTOR;
+		Repair.X = sb_x + 18;
 		Repair.Y = (0x96/2)*RESFACTOR;
 		Repair.IsPressed = false;
 		Repair.IsToggleType = true;
@@ -320,11 +327,7 @@ void SidebarClass::Init_IO(void)
 
 		Upgrade.IsSticky = true;
 		Upgrade.ID = BUTTON_UPGRADE;
-#if RESFACTOR == 2
-		Upgrade.X = 0x21f;
-#else
-		Upgrade.X = ((0x21f/2)+1)*RESFACTOR;
-#endif
+		Upgrade.X = sb_x + 63;
 		Upgrade.Y = (0x96/2)*RESFACTOR;
 		Upgrade.IsPressed = false;
 		Upgrade.IsToggleType = true;
@@ -333,7 +336,7 @@ void SidebarClass::Init_IO(void)
 
 		Zoom.IsSticky = true;
 		Zoom.ID = BUTTON_ZOOM;
-		Zoom.X = (0x24c/2)*RESFACTOR;
+		Zoom.X = sb_x + 108;
 		Zoom.Y = (0x96/2)*RESFACTOR;
 		Zoom.IsPressed = false;
 		Zoom.Set_Shape(MFCD::Retrieve("MAP.SHP"));
@@ -343,6 +346,8 @@ void SidebarClass::Init_IO(void)
 		} else {
 			Zoom.Disable();
 		}
+		Column[0].X = sb_x + 8 * RESFACTOR;
+		Column[1].X = sb_x + (8 + ((SIDE_WIDTH-16)/2) + 3) * RESFACTOR;
 		Column[0].Init_IO(0);
 		Column[1].Init_IO(1);
 
@@ -767,9 +772,10 @@ void SidebarClass::Draw_It(bool complete)
 			/*
 			** The sidebar shape is too big in 640x400 so it needs to be drawn in three chunks.
 			*/
-			CC_Draw_Shape(SidebarShape, 0, SIDE_X * RESFACTOR, 8*RESFACTOR, WINDOW_MAIN, SHAPE_WIN_REL);
-			CC_Draw_Shape(SidebarMiddleShape, shape, SIDE_X * RESFACTOR, (8+80)*RESFACTOR, WINDOW_MAIN, SHAPE_WIN_REL);
-			CC_Draw_Shape(SidebarBottomShape, shape, SIDE_X * RESFACTOR, (8+80+50)*RESFACTOR, WINDOW_MAIN, SHAPE_WIN_REL);
+			int sidebar_x = ScreenWidth - SIDE_WIDTH * RESFACTOR;
+			CC_Draw_Shape(SidebarShape, 0, sidebar_x, 8*RESFACTOR, WINDOW_MAIN, SHAPE_WIN_REL);
+			CC_Draw_Shape(SidebarMiddleShape, shape, sidebar_x, (8+80)*RESFACTOR, WINDOW_MAIN, SHAPE_WIN_REL);
+			CC_Draw_Shape(SidebarBottomShape, shape, sidebar_x, (8+80+50)*RESFACTOR, WINDOW_MAIN, SHAPE_WIN_REL);
 
 			Repair.Draw_Me(true);
 			Upgrade.Draw_Me(true);
@@ -999,7 +1005,13 @@ bool SidebarClass::Activate(int control)
 		**	activate it on the left side of the screen.
 		*/
 		if (IsSidebarActive /*&& X*/) {
-			Set_View_Dimensions(0, 8 * RESFACTOR, ((320-SIDE_WIDTH)/ICON_PIXEL_W) * RESFACTOR);
+			int tac_pixel_w = ScreenWidth - SIDE_WIDTH * RESFACTOR;
+			Set_View_Dimensions(0, 8 * RESFACTOR);
+			// Override tactical width to exact pixel boundary of sidebar (no cell rounding gap)
+			TacLeptonWidth = Pixel_To_Lepton(tac_pixel_w);
+			WindowList[WINDOW_TACTICAL][WINDOWWIDTH] = tac_pixel_w;
+			TacButton.Width = tac_pixel_w;
+			Background.Reposition();
 			IsToRedraw = true;
 			Help_Text(TXT_NONE);
 			Repair.Zap();

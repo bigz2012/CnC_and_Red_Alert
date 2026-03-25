@@ -323,8 +323,9 @@ bool Init_Game(int , char * [])
 	*/
 	if (!Special.IsFromInstall && !Special.IsFromWChat) {
 		VisiblePage.Clear();
-//		Mono_Printf("Playing Intro\n");
+#ifndef PORTABLE
 		Play_Intro();
+#endif
 		memset(CurrentPalette, 0x01, 768);
 		WhitePalette.Set();
 	} else {

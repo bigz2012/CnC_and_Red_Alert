@@ -38,6 +38,9 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include	"function.h"
+#ifdef PORTABLE
+#include <SDL.h>
+#endif
 #ifdef WIN32
 #ifndef PORTABLE
 #include 	<windows.h>
@@ -443,6 +446,24 @@ int main(int argc, char * argv[])
 
 #ifdef PORTABLE
 			Read_Setup_Options( &cfile );
+
+			/*
+			** Calculate ultrawide resolution: match display aspect ratio
+			** while keeping game height at 400. Width must be divisible by
+			** ICON_PIXEL_W (24) for clean tile boundaries.
+			*/
+			{
+				SDL_Init(SDL_INIT_VIDEO);
+				SDL_DisplayMode dm;
+				if (SDL_GetDesktopDisplayMode(0, &dm) == 0 && dm.w > 0 && dm.h > 0) {
+					int wide = (ScreenHeight * dm.w) / dm.h;
+					// Round down to nearest multiple of ICON_PIXEL_W (24)
+					wide = (wide / 24) * 24;
+					if (wide > ScreenWidth) {
+						ScreenWidth = wide;
+					}
+				}
+			}
 
 			Create_Main_Window( NULL , 0 , ScreenWidth , ScreenHeight );
 			SoundOn = Audio_Init ( MainWindow , 16 , false , 11025*2 , 0 );

@@ -27,20 +27,22 @@ void SDL_Create_Main_Window(const char *title, int width, int height)
 {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
-    // Create window at a scaled-up size that fits the display
-    // The game renders internally at width x height (e.g. 640x400)
-    // but we present at a larger window size for modern displays
+    // Create window at display resolution for borderless fullscreen feel
+    // The game renders at width x height (which may be ultrawide e.g. 960x400)
     SDL_DisplayMode dm;
     int window_w = width;
     int window_h = height;
     if (SDL_GetDesktopDisplayMode(0, &dm) == 0) {
-        // Calculate the largest integer scale that fits the display
-        int scale_x = dm.w / width;
-        int scale_y = dm.h / height;
-        int scale = scale_x < scale_y ? scale_x : scale_y;
+        // Scale to fit display height, maintaining the game's aspect ratio
+        int scale = dm.h / height;
         if (scale < 1) scale = 1;
         window_w = width * scale;
         window_h = height * scale;
+        // Clamp to display size
+        if (window_w > dm.w) {
+            window_w = dm.w;
+            window_h = dm.h;
+        }
     }
 
     MainWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_w, window_h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
@@ -50,9 +52,8 @@ void SDL_Create_Main_Window(const char *title, int width, int height)
     SDLRenderer = SDL_CreateRenderer((SDL_Window *)MainWindow, -1, SDL_RENDERER_PRESENTVSYNC);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
-    // Set logical size to game's native resolution — SDL handles upscaling
+    // Set logical size to game's internal resolution — SDL handles upscaling
     SDL_RenderSetLogicalSize(SDLRenderer, width, height);
-    SDL_RenderSetIntegerScale(SDLRenderer, SDL_TRUE);
 
     // sometimes the window won't be created until it has content
     // so we get stuck waiting for focus, which it'll never get because it doesn't exist

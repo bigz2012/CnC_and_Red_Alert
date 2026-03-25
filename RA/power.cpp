@@ -138,7 +138,7 @@ void PowerClass::Init_Clear(void)
 void PowerClass::One_Time(void)
 {
 	RadarClass::One_Time();
-	PowerButton.X = POWER_X * RESFACTOR;
+	PowerButton.X = ScreenWidth - SIDEBAR_WID * RESFACTOR;
 	PowerButton.Y = POWER_Y * RESFACTOR;
 	PowerButton.Width = (POWER_WIDTH * RESFACTOR)-1;
 	PowerButton.Height = POWER_HEIGHT * RESFACTOR;
@@ -184,13 +184,14 @@ void PowerClass::Draw_It(bool complete)
 				}
 
 //				LogicPage->Fill_Rect(POWER_X, POWER_Y, POWER_X+POWER_WIDTH-1, POWER_Y+POWER_HEIGHT-1, LTGREY);
-				CC_Draw_Shape(PowerBarShape, 0, 240 * RESFACTOR, 88 * RESFACTOR, WINDOW_MAIN, flags | SHAPE_NORMAL | SHAPE_WIN_REL, remap);
+				int bar_x = ScreenWidth - SIDEBAR_WID * RESFACTOR;
+				CC_Draw_Shape(PowerBarShape, 0, bar_x, 88 * RESFACTOR, WINDOW_MAIN, flags | SHAPE_NORMAL | SHAPE_WIN_REL, remap);
 
 #if RESFACTOR == 2
 				/*
 				** Hires power strip is too big to fit into a shape so it is in two parts
 				*/
-				CC_Draw_Shape(PowerBarShape, 1, 240 * RESFACTOR, (88 * RESFACTOR) + (56*RESFACTOR), WINDOW_MAIN, flags | SHAPE_NORMAL | SHAPE_WIN_REL, remap);
+				CC_Draw_Shape(PowerBarShape, 1, bar_x, (88 * RESFACTOR) + (56*RESFACTOR), WINDOW_MAIN, flags | SHAPE_NORMAL | SHAPE_WIN_REL, remap);
 #endif
 				/*
 				**	Determine how much the power production exceeds or falls short
@@ -231,14 +232,15 @@ void PowerClass::Draw_It(bool complete)
 #endif
 					bottom = (175*RESFACTOR)+1;
 
-					LogicPage->Fill_Rect(245*RESFACTOR, bottom-power_height, 245*RESFACTOR+1, bottom, color2);
-					LogicPage->Fill_Rect(246*RESFACTOR, bottom-power_height, 246*RESFACTOR+1, bottom, color1);
+					int pw_x = ScreenWidth - SIDEBAR_WID * RESFACTOR;
+					LogicPage->Fill_Rect(pw_x + 5*RESFACTOR, bottom-power_height, pw_x + 5*RESFACTOR+1, bottom, color2);
+					LogicPage->Fill_Rect(pw_x + 6*RESFACTOR, bottom-power_height, pw_x + 6*RESFACTOR+1, bottom, color1);
 				}
 
 				/*
 				**	Draw the power drain threshold marker.
 				*/
-				CC_Draw_Shape(PowerShape, 0, (POWER_X * RESFACTOR)+RESFACTOR, bottom - (drain_height + (2 * RESFACTOR)), WINDOW_MAIN, flags | SHAPE_NORMAL, remap);
+				CC_Draw_Shape(PowerShape, 0, (ScreenWidth - SIDEBAR_WID * RESFACTOR)+RESFACTOR, bottom - (drain_height + (2 * RESFACTOR)), WINDOW_MAIN, flags | SHAPE_NORMAL, remap);
 			}
 			LogicPage->Unlock();
 		}

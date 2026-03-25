@@ -366,7 +366,8 @@ class SidebarClass: public PowerClass
 		class SBGadgetClass: public GadgetClass {
 			public:
 //#ifdef WIN32
-				SBGadgetClass(void) : GadgetClass((int)((int)SIDE_X+8)*RESFACTOR, (int)SIDE_Y*RESFACTOR, (int)((int)SIDE_WIDTH-1)*RESFACTOR-1, (int)((int)SIDE_HEIGHT-1)*RESFACTOR, LEFTUP) {};
+				SBGadgetClass(void) : GadgetClass(0, (int)SIDE_Y*RESFACTOR, (int)((int)SIDE_WIDTH-1)*RESFACTOR-1, (int)((int)SIDE_HEIGHT-1)*RESFACTOR, LEFTUP) {};
+			void Reposition(void);
 //#else
 //				SBGadgetClass(void) : GadgetClass((int)SIDE_X+8, (int)SIDE_Y, (int)SIDE_WIDTH-1, (int)SIDE_HEIGHT-1, LEFTUP) {};
 //#endif
