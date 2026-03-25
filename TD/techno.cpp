@@ -2792,8 +2792,8 @@ CELL TechnoClass::Nearby_Location(TechnoClass const * ) const
 	**	Radiate outward from the object's location, looking for the best
 	**	target.
 	*/
-	CELL best = 0;
 	CELL cell = Coord_Cell(Center_Coord());
+	CELL best = cell;  // Default to current cell instead of 0 (top-left corner)
 	for (int radius = 0; radius < MAP_CELL_W/2; radius++) {
 
 		/*

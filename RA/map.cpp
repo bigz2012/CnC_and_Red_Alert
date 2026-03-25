@@ -1728,7 +1728,12 @@ CELL MapClass::Nearby_Location(CELL cell, SpeedType speed, int zone, MZoneType c
 	if (count > 0) {
 		return(topten[Frame % count]);
 	}
-	return(0);
+	/*
+	** If no clear cell was found, return the original target cell rather than
+	** cell 0 (top-left corner). This prevents AI units from driving to the
+	** upper-left corner of the map when pathfinding fails.
+	*/
+	return(cell);
 }
 
 
