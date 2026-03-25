@@ -403,8 +403,71 @@ extern "C" long Buffer_Frame_To_Page(int x, int y, int w, int h, void *src, Grap
 	}
 	else
 	{
-		// super jump table fun!
-		printf("%s new f %x all flags %i\n", __func__, header_pointer->draw_flags & BLIT_ALL, use_all_flags);
+		// New shape header system: per-line flags stored after the ShapeHeaderType
+		// Each byte contains the blit flags for that line
+		auto line_flags_ptr = (uint8_t *)header_pointer + sizeof(ShapeHeaderType);
+
+		int pixel_count = dst_x1 - dst_x0;
+		int line_count = dst_y1 - dst_y0;
+
+		if(pixel_count <= 0 || line_count <= 0)
+			return 0;
+
+		for(int line = 0; line < line_count; line++)
+		{
+			int lflags = line_flags_ptr[line + src_y0];
+
+			// Skip entirely transparent lines
+			if(lflags == BLIT_SKIP)
+			{
+				src_offset += w;
+				dst_offset += dst_area;
+				continue;
+			}
+
+			// Use the per-line flags if available, otherwise use the global flags
+			int effective_flags;
+			if(use_all_flags)
+				effective_flags = jflags; // headers just set up, use requested flags
+			else
+				effective_flags = lflags; // use cached per-line flags
+
+			for(int x = 0; x < pixel_count; x++)
+			{
+				uint8_t pixel = src_offset[x + src_x0];
+				if(pixel || !(effective_flags & BLIT_TRANSPARENT))
+				{
+					if(effective_flags & BLIT_PREDATOR)
+					{
+						int pred = BFPartialCount + BFPartialPred;
+						BFPartialCount = pred & 0xFF;
+						if(pred >> 8)
+						{
+							pixel = dst_offset[x + BFPredTable[BFPredOffset >> 1]];
+							BFPredOffset = (BFPredOffset + 2) & PRED_MASK;
+						}
+					}
+
+					if(effective_flags & BLIT_GHOST)
+					{
+						uint8_t is_trans = IsTranslucent[pixel];
+						if(is_trans != 0xFF)
+							pixel = Translucent[is_trans << 8 | dst_offset[x]];
+					}
+
+					if(effective_flags & BLIT_FADING)
+					{
+						for(int f = 0; f < FadingNum; f++)
+							pixel = FadingTable[pixel];
+					}
+
+					dst_offset[x] = pixel;
+				}
+			}
+
+			src_offset += w;
+			dst_offset += dst_area;
+		}
 	}
 
 	return 0;
