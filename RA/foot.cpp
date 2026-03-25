@@ -1124,20 +1124,22 @@ ResultType FootClass::Take_Damage(int & damage, int distance, WarheadType warhea
 			*/
 			if (Is_Allowed_To_Retaliate(source)) {
 
-				int primary = What_Weapon_Should_I_Use(source->As_Target());
-				if (In_Range(source, primary) || !House->IsHuman) {
-					Assign_Target(source->As_Target());
-				}
+				/*
+				**	Always assign the attacker as target regardless of range.
+				**	Human units now pursue attackers rather than sitting idle.
+				*/
+				Assign_Target(source->As_Target());
 
 				if (Mission == MISSION_AMBUSH) {
 					Assign_Mission(MISSION_HUNT);
 				}
 
 				/*
-				**	Simple retaliation cannot occur because the source of the damage
-				**	is too far away. If scatter logic is enabled, then scatter now.
+				**	If the attacker is out of range and the unit has no other orders,
+				**	scatter to avoid further damage.
 				*/
-				if (!Target_Legal(TarCom) && !Target_Legal(NavCom) && Rule.IsScatter) {
+				int primary = What_Weapon_Should_I_Use(source->As_Target());
+				if (!In_Range(source, primary) && !Target_Legal(NavCom) && Rule.IsScatter) {
 					Scatter(0, true);
 				}
 
@@ -1151,6 +1153,55 @@ ResultType FootClass::Take_Damage(int & damage, int distance, WarheadType warhea
 						Scatter(0, true);
 					}
 				}
+			}
+		}
+
+		/*
+		**	Alert nearby idle friendly units to come to the defense of this unit.
+		**	Scan ground layer for friendly units within 5 cells that are idle (guarding)
+		**	and have weapons. They will be assigned to attack the source of the damage.
+		*/
+		if (source != NULL && result != RESULT_DESTROYED) {
+			COORDINATE mycoord = Center_Coord();
+			int defense_radius = 5 * CELL_LEPTON_W;
+
+			for (int index = 0; index < DisplayClass::Layer[LAYER_GROUND].Count(); index++) {
+				ObjectClass * obj = DisplayClass::Layer[LAYER_GROUND][index];
+
+				if (obj == NULL || obj == this || !obj->Is_Techno()) continue;
+
+				TechnoClass * tech = (TechnoClass *)obj;
+
+				/*
+				**	Must be a friendly mobile unit that is idle and armed.
+				*/
+				if (!House->Is_Ally(tech)) continue;
+				if (!tech->Is_Foot()) continue;
+				if (!tech->Is_Weapon_Equipped()) continue;
+				if (tech->Combat_Damage() <= 0) continue;
+
+				FootClass * foot = (FootClass *)tech;
+
+				/*
+				**	Only recruit units that are idle — guarding with no current target or movement orders.
+				*/
+				if (Target_Legal(foot->TarCom) || Target_Legal(foot->NavCom)) continue;
+				if (foot->Mission != MISSION_GUARD && foot->Mission != MISSION_GUARD_AREA) continue;
+
+				/*
+				**	Must be within defense radius.
+				*/
+				if (::Distance(mycoord, foot->Center_Coord()) > defense_radius) continue;
+
+				/*
+				**	Check if this unit is allowed to retaliate against the source.
+				*/
+				if (!foot->Is_Allowed_To_Retaliate(source)) continue;
+
+				/*
+				**	Assign the attacker as the nearby unit's target.
+				*/
+				foot->Assign_Target(source->As_Target());
 			}
 		}
 	}
