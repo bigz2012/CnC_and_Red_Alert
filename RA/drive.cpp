@@ -1106,13 +1106,15 @@ bool DriveClass::Start_Of_Move(void)
 			}
 
 			Stop_Driver();
-			if (cando != MOVE_MOVING_BLOCK) {
+			if (cando != MOVE_MOVING_BLOCK && cando != MOVE_TEMP) {
 			 	Path[0] = FACING_NONE;		// Path is blocked!
 			}
 
 			/*
-			** If blocked by a moving block then just exit start of move and
-			** try again next tick.
+			** If blocked by a moving or temporary block then just exit start of
+			** move and try again next tick. This prevents the harvester
+			** pathfinding stutter when blocked by a friendly unit that is
+			** trying to scatter out of the way.
 			*/
 			if (cando == MOVE_DESTROYABLE) {
 				if (Map[destcell].Cell_Object()) {
