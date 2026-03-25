@@ -341,21 +341,51 @@ void Sound_Effect(VocType voc, COORDINATE coord, int variation, HousesType house
 
 	fixed volume = 1;
 	pan_value = 0;
-	if (coord && !Map.In_View(cell_pos)) {
-		int distance = Distance(coord, Map.TacticalCoord) / CELL_LEPTON_W;
-		fixed dfixed = fixed(distance, 128+64);
-		dfixed.Sub_Saturate(1);
-		volume = fixed(1) - dfixed;
+	if (coord) {
+		/*
+		**	Calculate the viewport center coordinate for distance measurement.
+		*/
+		COORDINATE view_center = Coord_Add(Map.TacticalCoord,
+			XY_Coord(Map.TacLeptonWidth / 2, Map.TacLeptonHeight / 2));
 
+		/*
+		**	Calculate distance from viewport center in cells. Sounds close to
+		**	the center play at full volume, sounds further away fade out.
+		**	Full volume within ~4 cells of center, fading to silence over ~24 cells.
+		*/
+		int distance = Distance(coord, view_center) / CELL_LEPTON_W;
+
+		/*
+		**	On-screen sounds get slight attenuation based on distance from center.
+		**	Off-screen sounds fade more aggressively.
+		*/
+		int half_view = Lepton_To_Cell(max(Map.TacLeptonWidth, Map.TacLeptonHeight)) / 2;
+		if (distance > half_view) {
+			/*
+			**	Off-screen: fade over 24 cells beyond the viewport edge.
+			*/
+			int off_distance = distance - half_view;
+			fixed dfixed = fixed(off_distance, 24);
+			dfixed.Sub_Saturate(1);
+			volume = fixed(1) - dfixed;
+		} else if (distance > 2) {
+			/*
+			**	On-screen but not right at center: slight volume reduction
+			**	proportional to distance from center (max 25% reduction).
+			*/
+			fixed dfixed = fixed(distance, half_view * 4);
+			dfixed.Sub_Saturate(1);
+			volume = fixed(1) - dfixed;
+		}
+
+		/*
+		**	Stereo panning based on horizontal position relative to viewport center.
+		*/
 		pan_value  = Cell_X(cell_pos);
 		pan_value -= Coord_XCell(Map.TacticalCoord) + (Lepton_To_Cell(Map.TacLeptonWidth) / 2);
-		if (ABS(pan_value) > Lepton_To_Cell(Map.TacLeptonWidth / 2)) {
-			pan_value *= 0x8000;
-			pan_value /= (MAP_CELL_W >> 2);
-			pan_value = Bound(pan_value, -0x7FFF, 0x7FFF);
-		} else {
-			pan_value  = 0;
-		}
+		pan_value *= 0x8000;
+		pan_value /= (MAP_CELL_W >> 2);
+		pan_value = Bound(pan_value, -0x7FFF, 0x7FFF);
 	}
 
 	Sound_Effect(voc, volume, variation, pan_value, house);
