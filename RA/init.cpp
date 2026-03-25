@@ -1496,7 +1496,6 @@ bool Select_Game(bool fade)
 #endif	//WIN32
 		}
 		Show_Mouse();
-//Mono_Printf("About to call Start Scenario with %s\n", Scen.ScenarioName);
 		if (!Start_Scenario(Scen.ScenarioName)) {
 			return(false);
 		}
@@ -3133,7 +3132,7 @@ static void Init_Secondary_Mixfiles(void)
 	if (CCFileClass("MOVIES2.MIX").Is_Available()) {
 		MoviesMix = new MFCD("MOVIES2.MIX", &FastKey);			// Never cached.
 	}
-	assert(MoviesMix != NULL);
+	// MoviesMix may be NULL if movies are inside MAIN.MIX -- this is OK
 
 	/*
 	**	Register the score mixfile.
