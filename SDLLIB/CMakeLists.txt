@@ -4,6 +4,7 @@ add_library(sdllib STATIC
     dipthong.cpp
     drawbuff.cpp
     drawbuff_sdl.cpp
+    hq2x.cpp
     file.cpp
     font.cpp
     iconcach.cpp

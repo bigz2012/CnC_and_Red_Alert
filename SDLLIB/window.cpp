@@ -58,7 +58,8 @@ void SDL_Create_Main_Window(const char *title, int width, int height)
     */
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-    // Set logical size to game's internal resolution — SDL handles upscaling
+    // Set logical size to game's internal resolution for correct mouse mapping.
+    // The Scale2x upscaler renders to a 2x texture but we handle that in RenderCopy.
     SDL_RenderSetLogicalSize(SDLRenderer, width, height);
 
     // sometimes the window won't be created until it has content
