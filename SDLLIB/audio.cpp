@@ -10,7 +10,7 @@
 
 // original code has 5 for windows, 4 for dos
 // effectively one less as one is used to track streaming from disk
-#define	MAX_SFX	4
+#define	MAX_SFX	12
 
 enum SCompressType : uint8_t
 {
@@ -375,10 +375,12 @@ int File_Stream_Sample_Vol(char const *filename, int volume, bool real_time_star
     int channels = header.Flags & 1 ? 2 : 1;
     int bits = header.Flags & 2 ? 16 : 8;
 
-    if(header.Compression != SCOMP_SOS || channels != 1 || bits != 16)
+    bool valid_stream = (header.Compression == SCOMP_SOS && bits == 16) ||
+                         (header.Compression == SCOMP_WESTWOOD && bits == 8);
+
+    if(!valid_stream || channels != 1)
     {
         Close_File(handle);
-        printf("\trate %i size %i/%i channels %i bits %i comp %i\n", header.Rate, header.Size, header.UncompSize, channels, bits, header.Compression);
         return -1;
     }
 
@@ -389,7 +391,7 @@ int File_Stream_Sample_Vol(char const *filename, int volume, bool real_time_star
     chan.sample = NULL;
     chan.playing = true;
     chan.priority = 0xFF;
-    chan.raw_volume = volume * ScoreVolume;
+    chan.raw_volume = (volume * ScoreVolume + 127) / 255;
     chan.volume = Calculate_Volume(chan.raw_volume);
     chan.fade = 0;
 
@@ -412,7 +414,6 @@ int File_Stream_Sample_Vol(char const *filename, int volume, bool real_time_star
         chan.step = 0;
         chan.predictor = 0;
     }
-
     SDL_UnlockAudioDevice(AudioDevice);
 
     return id;
@@ -464,7 +465,13 @@ void Sound_Callback(void)
             Read_File(chan.file_handle, buf, in_size);
 
             SDL_LockAudioDevice(AudioDevice);
-            DecodeADPCMBlock(chan, in_size, buf);
+
+            if(in_size == out_size) // raw block
+                SDL_AudioStreamPut(chan.stream, buf, in_size);
+            else if(chan.compression == SCOMP_SOS)
+                DecodeADPCMBlock(chan, in_size, buf);
+            else if(chan.compression == SCOMP_WESTWOOD)
+                DecodeWestwoodBlock(chan, in_size, buf);
 
             delete[] buf;
 
@@ -590,7 +597,7 @@ int Play_Sample_Handle(void const *sample, int priority, int volume, signed shor
     chan.sample = sample;
     chan.playing = true;
     chan.priority = priority;
-    chan.raw_volume = volume * 255;
+    chan.raw_volume = volume;
     chan.volume = Calculate_Volume(chan.raw_volume);
     chan.fade = 0;
 
