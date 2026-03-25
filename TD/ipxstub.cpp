@@ -43,7 +43,18 @@ static void Socket_Event_Handler(int socket, SocketEvent event, void *data)
             if(rc <= 0)
                 return;
 
-            // TODO: filter out self?
+            // Filter out packets from ourselves
+            {
+                struct sockaddr_in local_addr;
+                socklen_t local_len = sizeof(local_addr);
+                if(getsockname(SocketFd, (sockaddr *)&local_addr, &local_len) == 0) {
+                    // If the source port matches ours and address is local, skip
+                    if(addr.sin_port == local_addr.sin_port &&
+                       (addr.sin_addr.s_addr == local_addr.sin_addr.s_addr ||
+                        addr.sin_addr.s_addr == htonl(INADDR_LOOPBACK)))
+                        return;
+                }
+            }
 
             // add to list
             auto new_buf = new RecvBuffer;
@@ -113,7 +124,22 @@ bool __stdcall IPX_Get_Outstanding_Buffer95(unsigned char *buffer)
 
 void __stdcall IPX_Shut_Down95(void)
 {
+    // Close socket if still open
+    if(SocketFd != -1)
+        IPX_Close_Socket95(0);
 
+    // Free any remaining receive buffers
+    while(NextRecvBuffer)
+    {
+        auto old_buf = NextRecvBuffer;
+        NextRecvBuffer = NextRecvBuffer->Next;
+        delete old_buf;
+    }
+    LastRecvBuffer = NULL;
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
 }
 
 int __stdcall IPX_Send_Packet95(unsigned char *address, unsigned char *buf, int len, unsigned char *network, unsigned char *node)
@@ -190,12 +216,15 @@ void __stdcall IPX_Close_Socket95(int socket)
 
 int __stdcall IPX_Get_Connection_Number95(void)
 {
-    printf("IPX_Get_Connection_Number\n");
-    return 0;
+    // In UDP mode, return 1 if we have an open socket (indicates we're connected)
+    return (SocketFd != -1) ? 1 : 0;
 }
 
 int __stdcall IPX_Get_Local_Target95(unsigned char *dest_network, unsigned char *dest_node, unsigned short dest_socket, unsigned char *bridge_address)
 {
-    printf("IPX_Get_Local_Target\n");
+    // In UDP mode, there's no bridging — copy the destination node directly
+    // as the "bridge" address (direct routing)
+    if(dest_node && bridge_address)
+        memcpy(bridge_address, dest_node, 6);
     return 0;
 }
