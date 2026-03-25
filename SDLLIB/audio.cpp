@@ -81,8 +81,7 @@ struct ChannelState
 
 static int Calculate_Volume(int vol)
 {
-    // TODO: improve?
-    return vol * (32767) / (255 * 255);
+    return vol * 32767 / 255;
 }
 
 static uint8_t *DecodeADPCMBlock(ChannelState &chan, int block_size, uint8_t *in_ptr)
@@ -292,8 +291,9 @@ static void ResetStream(ChannelState &chan, AUDHeaderType *header)
             SDL_FreeAudioStream(chan.stream);
 
         chan.stream = SDL_NewAudioStream(bits == 16 ? AUDIO_S16 : AUDIO_U8, channels, header->Rate, ObtainedSpec.format, ObtainedSpec.channels, ObtainedSpec.freq);
+        if (!chan.stream) return;
     }
-    else
+    else if (chan.stream)
         SDL_AudioStreamClear(chan.stream);
 }
 
