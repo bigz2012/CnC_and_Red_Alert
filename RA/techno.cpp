@@ -5248,7 +5248,15 @@ void TechnoClass::Response_Attack(void)
 bool TechnoClass::Target_Something_Nearby(ThreatType threat)
 {
 	assert(IsActive);
-	threat = threat & (THREAT_RANGE|THREAT_AREA);
+
+	/*
+	**	Preserve threat type flags (THREAT_INFANTRY, THREAT_BUILDINGS, etc.)
+	**	so that Greatest_Threat can build the correct RTTI mask for filtering.
+	**	Only ensure at least RANGE or AREA is set for the distance check.
+	*/
+	if (!(threat & (THREAT_RANGE|THREAT_AREA))) {
+		threat = (ThreatType)(threat | THREAT_RANGE);
+	}
 
 	/*
 	**	Determine that if there is an existing target it is still legal

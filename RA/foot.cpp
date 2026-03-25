@@ -497,9 +497,14 @@ int FootClass::Mission_Move(void)
 		Enter_Idle_Mode();
 		return(1);
 	}
-//	if (!Target_Legal(TarCom) && !House->IsPlayerControl && !House->IsHuman) {
-	if (!Target_Legal(TarCom) && !House->IsPlayerControl && !House->IsHuman && (!Team.Is_Valid() || !Team->Class->IsSuicide)) {
-		Target_Something_Nearby(THREAT_RANGE);
+
+	/*
+	**	While moving, scan for enemy units within weapon range and engage them.
+	**	This applies to all players including human — units will fire on enemies
+	**	they encounter while moving without stopping to chase them.
+	*/
+	if (!Target_Legal(TarCom) && (!Team.Is_Valid() || !Team->Class->IsSuicide)) {
+		Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_INFANTRY | THREAT_VEHICLES | THREAT_AIR | THREAT_BOATS));
 	}
 	return(MissionControl[Mission].Normal_Delay() + Random_Pick(0, 2));
 }
@@ -563,6 +568,19 @@ int FootClass::Mission_Attack(void)
 {
 	assert(IsActive);
 	if (Target_Legal(TarCom)) {
+
+		/*
+		**	If currently attacking a building, check if an enemy unit has come
+		**	into weapon range. Units are always higher priority than buildings.
+		*/
+		if (Is_Target_Building(TarCom)) {
+			TARGET saved = TarCom;
+			Assign_Target(TARGET_NONE);
+			if (!Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_INFANTRY | THREAT_VEHICLES | THREAT_AIR | THREAT_BOATS))) {
+				Assign_Target(saved);
+			}
+		}
+
 		Approach_Target();
 	} else {
 		Enter_Idle_Mode();
@@ -591,11 +609,17 @@ int FootClass::Mission_Guard(void)
 	assert(IsActive);
 
 	/*
-	**	Try to find a target within weapon range. First scan for enemy units
-	**	(infantry, vehicles, aircraft, boats) which are the priority targets.
-	**	If no enemy units are found, scan for enemy buildings as secondary targets.
+	**	Scan for nearby threats with unit priority over buildings.
+	**	If currently targeting a building, check if a higher-priority enemy unit
+	**	has come into range and switch to it.
 	*/
-	if (!Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_INFANTRY | THREAT_VEHICLES | THREAT_AIR | THREAT_BOATS))) {
+	if (Target_Legal(TarCom) && Is_Target_Building(TarCom)) {
+		TARGET saved = TarCom;
+		Assign_Target(TARGET_NONE);
+		if (!Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_INFANTRY | THREAT_VEHICLES | THREAT_AIR | THREAT_BOATS))) {
+			Assign_Target(saved);
+		}
+	} else if (!Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_INFANTRY | THREAT_VEHICLES | THREAT_AIR | THREAT_BOATS))) {
 		if (!Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_BUILDINGS))) {
 			Random_Animate();
 		}
