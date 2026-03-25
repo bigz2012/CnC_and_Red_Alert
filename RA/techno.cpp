@@ -1603,16 +1603,13 @@ bool TechnoClass::Evaluate_Object(ThreatType method, int mask, int range, Techno
 	}
 
 	/*
-	**	SPECIAL CASE: Friendly units won't automatically fire on buildings
-	**	if the building is not aggressive. That is, unless it is part of a team. A team
-	**	is allowed to pick any target it so chooses.
+	**	SPECIAL CASE: Units won't automatically fire on non-aggressive buildings
+	**	unless they are part of a team or explicitly searching for buildings.
+	**	When THREAT_BUILDINGS is specified, all enemy buildings are valid targets.
 	*/
-	if ((!Is_Foot() || !((FootClass *)this)->Team.Is_Valid()) &&
-			(House->IsHuman || (House->IsPlayerControl && Session.Type == GAME_NORMAL)) &&
+	if (!(method & THREAT_BUILDINGS) &&
+			(!Is_Foot() || !((FootClass *)this)->Team.Is_Valid()) &&
 			otype == RTTI_BUILDING && tclass->PrimaryWeapon == NULL) {
-#ifdef OBSOLETE
-	if ((!Is_Foot() || ((FootClass *)this)->Team.Is_Valid()) && House->IsHuman && otype == RTTI_BUILDING && tclass->PrimaryWeapon == NULL) {
-#endif
 		BEnd(BENCH_EVAL_OBJECT);
 		return(false);
 	}

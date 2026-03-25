@@ -590,8 +590,15 @@ int FootClass::Mission_Guard(void)
 {
 	assert(IsActive);
 
-	if (!Target_Something_Nearby(THREAT_RANGE)) {
-		Random_Animate();
+	/*
+	**	Try to find a target within weapon range. First scan for enemy units
+	**	(infantry, vehicles, aircraft, boats) which are the priority targets.
+	**	If no enemy units are found, scan for enemy buildings as secondary targets.
+	*/
+	if (!Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_INFANTRY | THREAT_VEHICLES | THREAT_AIR | THREAT_BOATS))) {
+		if (!Target_Something_Nearby((ThreatType)(THREAT_RANGE | THREAT_BUILDINGS))) {
+			Random_Animate();
+		}
 	}
 
 	int dtime = MissionControl[Mission].Normal_Delay();
