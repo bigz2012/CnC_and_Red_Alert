@@ -50,7 +50,13 @@ void SDL_Create_Main_Window(const char *title, int width, int height)
     ForceRenderEventID = SDL_RegisterEvents(1);
 
     SDLRenderer = SDL_CreateRenderer((SDL_Window *)MainWindow, -1, SDL_RENDERER_PRESENTVSYNC);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+
+    /*
+    **	Use bilinear filtering for smoother upscaling. This must be set BEFORE
+    **	any textures are created as the hint applies at texture creation time.
+    **	"linear" gives smooth scaling vs "nearest" which gives blocky pixels.
+    */
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
     // Set logical size to game's internal resolution — SDL handles upscaling
     SDL_RenderSetLogicalSize(SDLRenderer, width, height);

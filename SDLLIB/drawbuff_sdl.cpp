@@ -71,7 +71,8 @@ void GraphicBufferClass::Update_Window_Surface(bool end_frame)
     SDL_BlitSurface((SDL_Surface *)PaletteSurface, NULL, tmp_surf, NULL);
     SDL_UnlockTexture(window_tex);
 
-    // copy to screen
+    // copy to screen with black letterbox/pillarbox borders
+    SDL_SetRenderDrawColor(SDLRenderer, 0, 0, 0, 255);
     SDL_RenderClear(SDLRenderer);
     SDL_RenderCopy(SDLRenderer, window_tex, NULL, NULL);
     SDL_RenderPresent(SDLRenderer);
