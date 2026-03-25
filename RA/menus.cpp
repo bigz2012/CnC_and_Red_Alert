@@ -480,42 +480,48 @@ int Main_Menu(unsigned long )
 //	#endif
 #endif	//WIN32
 #endif	//FIXIT_VERSION_3
-	int	d_dialog_x = 85 * RESFACTOR;
+	/*
+	**	Center offset for ultrawide: shift all menu elements to account for
+	**	the screen being wider than the original 640-pixel (320*RESFACTOR) layout.
+	*/
+	int menu_center_offset = (ScreenWidth - (320 * RESFACTOR)) / 2;
+
+	int	d_dialog_x = 85 * RESFACTOR + menu_center_offset;
 	int	d_dialog_y = 75 * RESFACTOR;
 	int	d_dialog_cx = d_dialog_x + (d_dialog_w / 2);
 
 	int	d_start_w = 118 * RESFACTOR;
 	int	d_start_h = 9 * RESFACTOR;
-	int	d_start_x = 102 * RESFACTOR;
+	int	d_start_x = 102 * RESFACTOR + menu_center_offset;
 #ifndef FIXIT_VERSION_3			//	Removed button from main menu.
 #if defined(WIN32) && !defined(INTERNET_OFF) // Denzil 5/1/98 - no internet play
 	int	d_internet_w = 118 * RESFACTOR;
 	int	d_internet_h = 9 * RESFACTOR;
-	int	d_internet_x = 102 * RESFACTOR;
+	int	d_internet_x = 102 * RESFACTOR + menu_center_offset;
 #endif	//WIN32
 #endif
 
 //#if defined(MPEGMOVIE) // Denzil 6/26/98 Video settings
 //	int	d_movie_w = 118 * RESFACTOR;
 //	int	d_movie_h = 9 * RESFACTOR;
-//	int	d_movie_x = 102 * RESFACTOR;
+//	int	d_movie_x = 102 * RESFACTOR + menu_center_offset;
 //#endif
 
 	int	d_load_w = 118 * RESFACTOR;
 	int	d_load_h = 9 * RESFACTOR;
-	int	d_load_x = 102 * RESFACTOR;
+	int	d_load_x = 102 * RESFACTOR + menu_center_offset;
 
 	int	d_multi_w = 118 * RESFACTOR;
 	int	d_multi_h = 9 * RESFACTOR;
-	int	d_multi_x = 102 * RESFACTOR;
+	int	d_multi_x = 102 * RESFACTOR + menu_center_offset;
 
 	int	d_intro_w = 118 * RESFACTOR;
 	int	d_intro_h = 9 * RESFACTOR;
-	int	d_intro_x = 102 * RESFACTOR;
+	int	d_intro_x = 102 * RESFACTOR + menu_center_offset;
 
-	int	d_exit_w = 118 * RESFACTOR;    //changed value to 118 V.Grippi
+	int	d_exit_w = 118 * RESFACTOR;
 	int	d_exit_h = 9 * RESFACTOR;
-	int     d_exit_x = 102 *RESFACTOR;   //Added V.Grippi
+	int d_exit_x = 102 * RESFACTOR + menu_center_offset;
 
 	int starty = d_dialog_y + (12 * RESFACTOR);
 

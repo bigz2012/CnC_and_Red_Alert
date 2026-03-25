@@ -2541,8 +2541,26 @@ void Init_Random(void)
  *=============================================================================================*/
 void Load_Title_Page(bool visible)
 {
+	/*
+	**	Clear the page first (for ultrawide — the PCX is 640 wide but screen is 960).
+	*/
+	HidPage.Clear();
+
 #if RESFACTOR == 2
-	Load_Title_Screen("TITLE.PCX", &HidPage, CCPalette);
+	/*
+	**	Load PCX into a temporary buffer, then blit centered on the page.
+	*/
+	{
+		char pal_data[768];
+		GraphicBufferClass *load_buffer = Read_PCX_File("TITLE.PCX", pal_data, NULL, 0);
+		memcpy(&CCPalette[0], pal_data, 768);
+		if (load_buffer) {
+			int x_offset = (ScreenWidth - load_buffer->Get_Width()) / 2;
+			if (x_offset < 0) x_offset = 0;
+			load_buffer->Blit(HidPage, 0, 0, x_offset, 0, load_buffer->Get_Width(), load_buffer->Get_Height());
+			delete load_buffer;
+		}
+	}
 #else
 	Load_Picture("TITLE.CPS", *HidPage.Get_Graphic_Buffer(), *HidPage.Get_Graphic_Buffer(), CCPalette, BM_DEFAULT);
 #endif
