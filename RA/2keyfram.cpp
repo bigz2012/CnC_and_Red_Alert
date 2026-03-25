@@ -85,7 +85,7 @@ int			TotalTheaterShapes = 0;
 #define MAX_SLOTS 1500
 #define THEATER_SLOT_START 1000
 
-char	**KeyFrameSlots [MAX_SLOTS];
+char	**KeyFrameSlots [MAX_SLOTS] = {NULL};
 int 	TotalSlotsUsed=0;
 int		TheaterSlotsUsed = THEATER_SLOT_START;
 
