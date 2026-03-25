@@ -274,8 +274,11 @@ if(WIN32)
 	target_link_libraries(rasdl PRIVATE wsock32)
 endif()
 
+set(RA_LANGUAGE "ENGLISH" CACHE STRING "Language for Red Alert (ENGLISH, FRENCH, GERMAN)")
+set_property(CACHE RA_LANGUAGE PROPERTY STRINGS ENGLISH FRENCH GERMAN)
+
 target_compile_definitions(rasdl PRIVATE
-	ENGLISH=1  # TODO: also french/german
+	${RA_LANGUAGE}=1
 	PORTABLE=1 # to indicate not windows or dos sometimes
 )
 target_link_libraries(rasdl PRIVATE tech jshell port sdllib vqa32) # mpgdll wwipx32
