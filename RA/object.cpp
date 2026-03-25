@@ -1857,24 +1857,41 @@ bool ObjectClass::Paradrop(COORDINATE coord)
 
 	Height = FLIGHT_LEVEL;
 	IsFalling = true;
-	if (Unlimbo(coord, DIR_S)) {
-		AnimClass * anim = NULL;
 
-		if (What_Am_I() == RTTI_BULLET) {
-			anim = new AnimClass(ANIM_PARA_BOMB, Coord_Move(Center_Coord(), DIR_N, 0x0030 + Height));
+	/*
+	** Try to unlimbo at the exact coordinate first. If that fails (e.g., the
+	** cell is impassable like water), find a nearby passable cell instead.
+	** This prevents paradrops (especially dogs) from being lost when dropped
+	** onto impassable terrain.
+	*/
+	if (!Unlimbo(coord, DIR_S)) {
+		CELL cell = Coord_Cell(coord);
+		CELL nearby = Map.Nearby_Location(cell, SPEED_FOOT);
+		if (nearby != cell) {
+			coord = Cell_Coord(nearby);
+			if (!Unlimbo(coord, DIR_S)) {
+				return(false);
+			}
 		} else {
-			anim = new AnimClass(ANIM_PARACHUTE, Coord_Move(Center_Coord(), DIR_N, 0x0030 + Height));
+			return(false);
 		}
-
-		/*
-		**	If the animation was created, then attach it to this object.
-		*/
-		if (anim != NULL) {
-			anim->Attach_To(this);
-		}
-		return(true);
 	}
-	return(false);
+
+	AnimClass * anim = NULL;
+
+	if (What_Am_I() == RTTI_BULLET) {
+		anim = new AnimClass(ANIM_PARA_BOMB, Coord_Move(Center_Coord(), DIR_N, 0x0030 + Height));
+	} else {
+		anim = new AnimClass(ANIM_PARACHUTE, Coord_Move(Center_Coord(), DIR_N, 0x0030 + Height));
+	}
+
+	/*
+	**	If the animation was created, then attach it to this object.
+	*/
+	if (anim != NULL) {
+		anim->Attach_To(this);
+	}
+	return(true);
 }
 
 
