@@ -3,12 +3,21 @@
 #include <SDL.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /* HQ2x upscaler — implemented in hq2x.cpp */
 extern "C" void HQ2x_32(const uint32_t *src, int src_w, int src_h, int src_pitch,
                           uint32_t *dst, int dst_pitch);
 
+/* Realism post-processor — implemented in realism.cpp */
+extern "C" void Realism_Filter(uint32_t *pixels, int w, int h, int pitch);
+
 extern SDL_Renderer *SDLRenderer;
+
+/* FPS counter state */
+static Uint32 fps_frame_count = 0;
+static Uint32 fps_last_time = 0;
+static int fps_current = 0;
 
 extern Uint32 ForceRenderEventID;
 static Uint32 Force_Redraw_Timer(Uint32 interval, void *)
@@ -189,7 +198,10 @@ void GraphicBufferClass::Update_Window_Surface(bool end_frame)
 
     if (upscale_tex)
     {
-        // Apply HQ2x upscaling: 1x RGB -> 2x RGB with anti-aliased edges
+        // Apply realism filter to 1x frame before upscaling
+        Realism_Filter((uint32_t *)tmp_surf->pixels, tmp_surf->w, tmp_surf->h, tmp_surf->pitch);
+
+        // Apply xBR upscaling: 1x RGB -> 2x RGB with anti-aliased edges
         SDL_Surface *dst_surf;
         SDL_LockTextureToSurface(upscale_tex, NULL, &dst_surf);
 
@@ -216,6 +228,19 @@ void GraphicBufferClass::Update_Window_Surface(bool end_frame)
     }
 
     SDL_RenderPresent(SDLRenderer);
+
+    /* Update FPS counter in window title every second */
+    fps_frame_count++;
+    Uint32 now = SDL_GetTicks();
+    if (now - fps_last_time >= 1000) {
+        fps_current = fps_frame_count;
+        fps_frame_count = 0;
+        fps_last_time = now;
+
+        char title[64];
+        sprintf(title, "Red Alert - %d FPS", fps_current);
+        SDL_SetWindowTitle((SDL_Window *)MainWindow, title);
+    }
 
     // update the event loop here too for now
     SDL_Event_Loop();

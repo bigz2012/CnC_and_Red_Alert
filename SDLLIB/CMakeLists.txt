@@ -5,6 +5,7 @@ add_library(sdllib STATIC
     drawbuff.cpp
     drawbuff_sdl.cpp
     hq2x.cpp
+    realism.cpp
     file.cpp
     font.cpp
     iconcach.cpp
