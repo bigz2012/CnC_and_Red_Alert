@@ -719,7 +719,7 @@ int Main_Menu(unsigned long )
 	if (oldvolume == 0) {
 		Options.Set_Score_Volume(fixed(4, 10), false);
 	}
-	Theme.Play_Song(THEME_INTRO);
+	Theme.Play_Song(THEME_HELL);
 
 	/*
 	**	Main Processing Loop.
@@ -898,7 +898,7 @@ int Main_Menu(unsigned long )
 			case KN_BACKSPACE:
 				Show_Who_Was_Responsible ();
 				display = true;
-				Theme.Play_Song(THEME_INTRO);
+				Theme.Play_Song(THEME_HELL);
 				break;
 #endif	//(0)
 			case KN_UP:
@@ -985,7 +985,7 @@ int Main_Menu(unsigned long )
 													79*RESFACTOR, 24*RESFACTOR)){
 					Show_Who_Was_Responsible();
 					display = true;
-					Theme.Play_Song(THEME_INTRO);
+					Theme.Play_Song(THEME_HELL);
 
 					break;
 				}

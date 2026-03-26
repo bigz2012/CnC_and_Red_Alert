@@ -574,7 +574,7 @@ bool Select_Game(bool fade)
 		/*
 		**	Menu selection processing loop
 		*/
-		Theme.Queue_Song(THEME_CRUS);
+		Theme.Queue_Song(THEME_HELL);
 
 		/*
 		** If we're playing back a recording, load all pertinent values & skip
@@ -1364,7 +1364,7 @@ bool Select_Game(bool fade)
 						Play_Movie(VQ_SIZZLE2, THEME_NONE, true);
 //						Play_Movie(VQ_INTRO_MOVIE, THEME_NONE, false);		// has transitino picture to briefing
 					}
-					Theme.Queue_Song(THEME_CRUS);
+					Theme.Queue_Song(THEME_HELL);
 					display = true;
 					fade = true;
 					selection = SEL_NONE;
