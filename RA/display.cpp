@@ -1715,6 +1715,28 @@ ObjectClass * DisplayClass::Cell_Object(CELL cell, int x, int y) const
 		}
 
 		/*
+		**	Smooth camera: lerp TacticalCoord toward DesiredTacticalCoord
+		**	instead of snapping instantly. This gives a smooth pan effect.
+		*/
+		if (DesiredTacticalCoord != TacticalCoord) {
+			int dx = (int)(short)Coord_X(DesiredTacticalCoord) - (int)(short)Coord_X(TacticalCoord);
+			int dy = (int)(short)Coord_Y(DesiredTacticalCoord) - (int)(short)Coord_Y(TacticalCoord);
+
+			/*
+			** Lerp factor: move 40% of remaining distance each frame.
+			** Snap if very close (within 2 pixels worth of leptons).
+			*/
+			int snap_threshold = PIXEL_LEPTON_W * 2;
+			if (ABS(dx) <= snap_threshold && ABS(dy) <= snap_threshold) {
+				/* Close enough -- snap to target */
+			} else {
+				int newx = (int)(short)Coord_X(TacticalCoord) + dx * 40 / 100;
+				int newy = (int)(short)Coord_Y(TacticalCoord) + dy * 40 / 100;
+				DesiredTacticalCoord = XY_Coord((LEPTON)(newx & 0xFFFF), (LEPTON)(newy & 0xFFFF));
+			}
+		}
+
+		/*
 		**	Check for a movement of the tactical map. If there has been some
 		**	movement, then part (or all) of the icons must be redrawn.
 		*/
