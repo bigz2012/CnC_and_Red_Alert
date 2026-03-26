@@ -168,6 +168,22 @@ bool WWKeyboardClass::Event_Handler(SDL_Event *event)
         case SDL_MOUSEMOTION:
             Update_Mouse_Pos(event->motion.x, event->motion.y);
             break;
+
+        case SDL_MOUSEWHEEL:
+        {
+            extern float ZoomLevel;
+            extern SDL_Renderer *SDLRenderer;
+            float step = 0.15f;
+            float minz = 1.0f, maxz = 3.0f;
+            if (event->wheel.y > 0) {
+                ZoomLevel += step;
+                if (ZoomLevel > maxz) ZoomLevel = maxz;
+            } else if (event->wheel.y < 0) {
+                ZoomLevel -= step;
+                if (ZoomLevel < minz) ZoomLevel = minz;
+            }
+            break;
+        }
     }
 
     return false;

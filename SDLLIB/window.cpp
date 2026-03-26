@@ -17,6 +17,13 @@ unsigned int Window;
 SDL_Renderer *SDLRenderer;
 Uint32 ForceRenderEventID;
 
+/* Mouse wheel zoom state */
+float ZoomLevel = 1.0f;
+static const float ZOOM_MIN = 1.0f;
+static const float ZOOM_MAX = 3.0f;
+static const float ZOOM_STEP = 0.15f;
+static int LogicalW = 0, LogicalH = 0;
+
 int Change_Window(int windnum)
 {
     printf("%s\n", __func__);
@@ -61,6 +68,8 @@ void SDL_Create_Main_Window(const char *title, int width, int height)
     // Set logical size to game's internal resolution for correct mouse mapping.
     // The Scale2x upscaler renders to a 2x texture but we handle that in RenderCopy.
     SDL_RenderSetLogicalSize(SDLRenderer, width, height);
+    LogicalW = width;
+    LogicalH = height;
 
     // sometimes the window won't be created until it has content
     // so we get stuck waiting for focus, which it'll never get because it doesn't exist

@@ -210,21 +210,46 @@ void GraphicBufferClass::Update_Window_Surface(bool end_frame)
             (uint32_t *)dst_surf->pixels, dst_surf->pitch
         );
 
+        /* Save dimensions before unlocking invalidates surface pointers */
+        int upW = dst_surf->w, upH = dst_surf->h;
+
         SDL_UnlockTexture(window_tex);
         SDL_UnlockTexture(upscale_tex);
 
-        // present the upscaled texture
+        // present the upscaled texture with zoom
         SDL_SetRenderDrawColor(SDLRenderer, 0, 0, 0, 255);
         SDL_RenderClear(SDLRenderer);
-        SDL_RenderCopy(SDLRenderer, upscale_tex, NULL, NULL);
+
+        extern float ZoomLevel;
+        if (ZoomLevel > 1.01f) {
+            /* Zoom: show a cropped center portion of the source texture */
+            int cropW = (int)(upW / ZoomLevel);
+            int cropH = (int)(upH / ZoomLevel);
+            SDL_Rect src_rect = { (upW - cropW) / 2, (upH - cropH) / 2, cropW, cropH };
+            SDL_RenderCopy(SDLRenderer, upscale_tex, &src_rect, NULL);
+        } else {
+            SDL_RenderCopy(SDLRenderer, upscale_tex, NULL, NULL);
+        }
     }
     else
     {
+        /* Save dimensions before unlocking invalidates surface pointer */
+        int texW = tmp_surf->w, texH = tmp_surf->h;
+
         SDL_UnlockTexture(window_tex);
 
         SDL_SetRenderDrawColor(SDLRenderer, 0, 0, 0, 255);
         SDL_RenderClear(SDLRenderer);
-        SDL_RenderCopy(SDLRenderer, window_tex, NULL, NULL);
+
+        extern float ZoomLevel;
+        if (ZoomLevel > 1.01f) {
+            int cropW = (int)(texW / ZoomLevel);
+            int cropH = (int)(texH / ZoomLevel);
+            SDL_Rect src_rect = { (texW - cropW) / 2, (texH - cropH) / 2, cropW, cropH };
+            SDL_RenderCopy(SDLRenderer, window_tex, &src_rect, NULL);
+        } else {
+            SDL_RenderCopy(SDLRenderer, window_tex, NULL, NULL);
+        }
     }
 
     SDL_RenderPresent(SDLRenderer);
