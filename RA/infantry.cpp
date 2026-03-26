@@ -4140,7 +4140,9 @@ bool InfantryClass::Is_Ready_To_Random_Animate(void) const
 bool InfantryClass::Paradrop(COORDINATE coord)
 {
 	if (FootClass::Paradrop(coord)) {
-		if (House->IsHuman) {
+		if (IsALoaner) {
+			Assign_Mission(MISSION_HUNT);
+		} else if (House->IsHuman) {
 			Assign_Mission(MISSION_GUARD);
 		} else {
 			Assign_Mission(MISSION_HUNT);

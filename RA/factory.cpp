@@ -439,7 +439,6 @@ bool FactoryClass::Start(void)
 //			int rate = (time*256) / frac;
 
 			rate /= STEP_COUNT;
-			rate /= 2;  // Double construction speed
 			rate = Bound(rate, 1, 255);
 
 			Set_Rate(rate);

@@ -41,6 +41,143 @@
 #include	"function.h"
 #include	"logic.h"
 #include 	"vortex.h"
+#include	<SDL.h>
+
+/*
+**	Random skirmish events system. Triggers hostile events at random
+**	intervals to keep skirmish games interesting.
+*/
+static unsigned int NextRandomEventTime = 0;
+static const int RANDOM_EVENT_MIN_DELAY = 3 * 60;  /* 3 minutes in seconds */
+static const int RANDOM_EVENT_MAX_DELAY = 7 * 60;  /* 7 minutes in seconds */
+
+static void Schedule_Next_Random_Event(void)
+{
+	int delay = RANDOM_EVENT_MIN_DELAY + (Random_Pick(0, RANDOM_EVENT_MAX_DELAY - RANDOM_EVENT_MIN_DELAY));
+	NextRandomEventTime = SDL_GetTicks() + (delay * 1000);
+}
+
+static void Do_Random_Skirmish_Event(void)
+{
+	/*
+	**	Find or create a hostile house for the event forces.
+	**	Use HOUSE_BAD (Soviet/Nod) as a generic enemy.
+	*/
+	/*
+	**	Find a hostile house. Use any active non-human AI opponent
+	**	from skirmish — they already have proper enemy relationships.
+	**	Fall back to HOUSE_BAD/HOUSE_GOOD if no AI found.
+	*/
+	HouseClass * hostile = NULL;
+	for (int h = 0; h < Houses.Count(); h++) {
+		HouseClass * hh = Houses.Ptr(h);
+		if (hh && hh->IsActive && !hh->IsHuman && !hh->IsDefeated) {
+			hostile = hh;
+			break;
+		}
+	}
+	if (!hostile) {
+		hostile = HouseClass::As_Pointer(HOUSE_BAD);
+	}
+	if (!hostile) return;
+
+	/*
+	**	Ensure the hostile house is enemy to all other active houses.
+	*/
+	for (int h2 = 0; h2 < Houses.Count(); h2++) {
+		HouseClass * hh = Houses.Ptr(h2);
+		if (hh && hh->IsActive && hh != hostile) {
+			hostile->Make_Enemy(hh->Class->House);
+		}
+	}
+
+	/*
+	**	Pick a random drop zone across the map (not near any player base).
+	**	Choose a random cell somewhere in the middle portion of the map.
+	*/
+	int map_x = Map.MapCellX + Random_Pick(Map.MapCellWidth / 4, (Map.MapCellWidth * 3) / 4);
+	int map_y = Map.MapCellY + Random_Pick(Map.MapCellHeight / 4, (Map.MapCellHeight * 3) / 4);
+	CELL drop_cell = XY_Cell(map_x, map_y);
+	drop_cell = Map.Nearby_Location(drop_cell, SPEED_FOOT);
+
+	/*
+	**	Pick a random infantry type for the drop.
+	*/
+	static const InfantryType drop_types[] = {
+		INFANTRY_E1, INFANTRY_E1, INFANTRY_E2, INFANTRY_E3, INFANTRY_E4
+	};
+	int pick = Random_Pick(0, 4);
+	InfantryType inf_type = drop_types[pick];
+
+	Speak(VOX_BASE_UNDER_ATTACK);
+
+	/*
+	**	Reveal the full drop line for the human player so they can watch.
+	*/
+	if (PlayerPtr) {
+		for (int r = -15; r <= 15; r += 5) {
+			int rx = map_x + r;
+			if (rx >= Map.MapCellX && rx < Map.MapCellX + Map.MapCellWidth) {
+				Map.Sight_From(XY_Cell(rx, map_y), 6, PlayerPtr, false);
+			}
+		}
+	}
+
+	/*
+	**	All planes come from the same direction (north edge).
+	**	Create 10 Badger transports, each with a full infantry cargo,
+	**	targeting cells spread across a horizontal line.
+	*/
+	int max_pass = AircraftTypeClass::As_Reference(AIRCRAFT_BADGER).Max_Passengers();
+	SourceType source = SOURCE_NORTH;
+	CELL spawn_cell = Map.Calculated_Cell(source, -1, -1, SPEED_WINGED);
+
+	for (int plane = 0; plane < 10; plane++) {
+		int offset_x = map_x + (plane - 5) * 3;
+		if (offset_x < Map.MapCellX) offset_x = Map.MapCellX;
+		if (offset_x >= Map.MapCellX + Map.MapCellWidth) offset_x = Map.MapCellX + Map.MapCellWidth - 1;
+		CELL target_cell = XY_Cell(offset_x, map_y);
+
+		/*
+		**	Create the Badger transport aircraft.
+		*/
+		ScenarioInit++;
+		AircraftClass * aircraft = (AircraftClass *)AircraftTypeClass::As_Reference(AIRCRAFT_BADGER).Create_One_Of(hostile);
+		ScenarioInit--;
+		if (!aircraft) continue;
+
+		aircraft->IsALoaner = true;
+		aircraft->Passenger = true;
+
+		/*
+		**	Load infantry into the aircraft cargo hold.
+		*/
+		for (int p = 0; p < max_pass; p++) {
+			ScenarioInit++;
+			InfantryClass * inf = (InfantryClass *)InfantryTypeClass::As_Reference(inf_type).Create_One_Of(hostile);
+			ScenarioInit--;
+			if (inf) {
+				inf->IsALoaner = true;
+				inf->Assign_Mission(MISSION_HUNT);
+				aircraft->Attach(inf);
+			}
+		}
+
+		/*
+		**	Place the aircraft at the north edge of the map and send it to the drop zone.
+		*/
+		ScenarioInit++;
+		if (aircraft->Unlimbo(Cell_Coord(spawn_cell), DIR_S)) {
+			aircraft->Assign_Mission(MISSION_MOVE);
+			aircraft->Assign_Target(::As_Target(target_cell));
+			aircraft->Assign_Destination(::As_Target(target_cell));
+			aircraft->Commence();
+		} else {
+			delete aircraft;
+		}
+		ScenarioInit--;
+	}
+}
 
 static unsigned FramesPerSecond=0;
 
@@ -275,6 +412,19 @@ void LogicClass::AI(void)
 	}
 
 	ChronalVortex.AI();
+
+	/*
+	**	Random skirmish events -- paratroopers, air strikes, etc.
+	*/
+	if (Session.Type == GAME_SKIRMISH) {
+		if (NextRandomEventTime == 0) {
+			Schedule_Next_Random_Event();
+		} else if (SDL_GetTicks() >= NextRandomEventTime) {
+			Do_Random_Skirmish_Event();
+			Schedule_Next_Random_Event();
+		}
+	}
+
 	/*
 	**	AI for all sentient objects is processed.
 	*/
