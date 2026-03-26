@@ -5318,8 +5318,16 @@ void BuildingClass::Factory_AI(void)
 //				fact->Completed();
 				Factory->Completed();
 //				delete fact;
-				delete (FactoryClass *)Factory;
-				Factory = 0;
+				/*
+				**	If there are queued items, start the next one
+				**	instead of deleting the factory.
+				*/
+				if (((FactoryClass *)Factory)->Start_Next_Queued()) {
+					/* Factory stays alive, producing next queued item */
+				} else {
+					delete (FactoryClass *)Factory;
+					Factory = 0;
+				}
 				break;
 
 			default:

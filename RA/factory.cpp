@@ -79,10 +79,12 @@ FactoryClass::FactoryClass(void) :
 	OriginalBalance(0),
 	Object(0),
 	SpecialItem(SPC_NONE),
-	House(0)
+	House(0),
+	QueueCount(0)
 {
 	Set_Rate(0);
 	Set_Stage(0);
+	memset(Queue, 0, sizeof(Queue));
 }
 
 
@@ -437,6 +439,7 @@ bool FactoryClass::Start(void)
 //			int rate = (time*256) / frac;
 
 			rate /= STEP_COUNT;
+			rate /= 2;  // Double construction speed
 			rate = Bound(rate, 1, 255);
 
 			Set_Rate(rate);
@@ -663,6 +666,53 @@ bool FactoryClass::Completed(void)
 		IsDifferent = true;
 		Set_Stage(0);
 		Set_Rate(0);
+		return(true);
+	}
+	return(false);
+}
+
+
+/***********************************************************************************************
+ * FactoryClass::Add_To_Queue -- Adds a build request to the queue.                            *
+ *=============================================================================================*/
+bool FactoryClass::Add_To_Queue(RTTIType type, int id)
+{
+	if (QueueCount >= MAX_QUEUE) return(false);
+	Queue[QueueCount].Type = type;
+	Queue[QueueCount].ID = id;
+	QueueCount++;
+	return(true);
+}
+
+
+/***********************************************************************************************
+ * FactoryClass::Remove_From_Queue -- Removes an entry from the queue.                         *
+ *=============================================================================================*/
+bool FactoryClass::Remove_From_Queue(int index)
+{
+	if (index < 0 || index >= QueueCount) return(false);
+	for (int i = index; i < QueueCount - 1; i++) {
+		Queue[i] = Queue[i + 1];
+	}
+	QueueCount--;
+	return(true);
+}
+
+
+/***********************************************************************************************
+ * FactoryClass::Start_Next_Queued -- Starts the next item in the build queue.                 *
+ *=============================================================================================*/
+bool FactoryClass::Start_Next_Queued(void)
+{
+	if (QueueCount <= 0 || !House) return(false);
+
+	RTTIType type = Queue[0].Type;
+	int id = Queue[0].ID;
+	Remove_From_Queue(0);
+
+	TechnoTypeClass const * ttype = Fetch_Techno_Type(type, id);
+	if (ttype && Set(*ttype, *House)) {
+		Start();
 		return(true);
 	}
 	return(false);

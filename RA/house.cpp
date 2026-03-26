@@ -2975,7 +2975,17 @@ bool HouseClass::Place_Object(RTTIType type, CELL cell)
 					**	has been completed.
 					*/
 					factory->Completed();
-					Abandon_Production(type);
+
+					/*
+					**	If there are queued items, start the next one
+					**	instead of abandoning the factory.
+					*/
+					if (factory->Start_Next_Queued()) {
+						/* Factory continues with next queued item.
+						** Re-link it to the sidebar. */
+					} else {
+						Abandon_Production(type);
+					}
 					switch (pending->What_Am_I()) {
 						case RTTI_UNIT:
 							JustBuiltUnit = ((UnitClass*)pending)->Class->Type;

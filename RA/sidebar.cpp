@@ -1851,6 +1851,17 @@ void SidebarClass::StripClass::Draw_It(bool complete)
 				}
 			}
 
+			/*
+			**	Draw build queue count in the bottom-right corner of the icon.
+			*/
+			if (factory && factory->QueueCount > 0) {
+				char qbuf[4];
+				sprintf(qbuf, "+%d", factory->QueueCount);
+				int tx = x + (OBJECT_WIDTH * RESFACTOR) - (3 * RESFACTOR);
+				int ty = y + (OBJECT_HEIGHT * RESFACTOR) - (8 * RESFACTOR);
+				Fancy_Text_Print(qbuf, tx, ty, GadgetClass::Get_Color_Scheme(), TBLACK, TPF_RIGHT | TPF_NOSHADOW | TPF_6POINT);
+			}
+
 		}
 
 		LastSlid = Slid;
@@ -2129,11 +2140,14 @@ int SidebarClass::StripClass::SelectClass::Action(unsigned flags, KeyNumType & k
 
 				/*
 				**	If there is already a factory attached to this strip but the player didn't click
-				**	on the icon that has the attached factory, then say that the factory is busy and
-				**	ignore the click.
+				**	on the icon that has the attached factory, queue the new item for later.
 				*/
 				if (fnumber == -1 && factory != NULL) {
-					Speak(VOX_NO_FACTORY);
+					if (factory->Add_To_Queue(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)) {
+						Speak(VOX_BUILDING);
+					} else {
+						Speak(VOX_NO_FACTORY);
+					}
 					ControlClass::Action(flags, key);
 					return(true);
 				}
@@ -2141,11 +2155,15 @@ int SidebarClass::StripClass::SelectClass::Action(unsigned flags, KeyNumType & k
 				if (factory != NULL) {
 
 					/*
-					**	If this object is currently being built, then give a scold sound and text and then
-					**	bail.
+					**	If this object is currently being built, queue the item
+					**	for automatic production after the current one completes.
 					*/
 					if (factory->Is_Building()) {
-						Speak(VOX_NO_FACTORY);
+						if (factory->Add_To_Queue(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)) {
+							Speak(VOX_BUILDING);
+						} else {
+							Speak(VOX_NO_FACTORY);  /* Queue full */
+						}
 					} else {
 
 						/*

@@ -91,6 +91,22 @@ class FactoryClass : private StageClass
 		enum StepCountEnum {
 			STEP_COUNT=54			// Number of steps to break production down into.
 		};
+
+		/*
+		**	Build queue -- allows queuing up to 5 additional items while
+		**	the factory is busy. Items auto-start when current build completes.
+		*/
+		enum { MAX_QUEUE = 5 };
+		struct QueueEntry {
+			RTTIType Type;
+			int ID;
+		};
+		QueueEntry Queue[MAX_QUEUE];
+		int QueueCount;
+		bool Add_To_Queue(RTTIType type, int id);
+		bool Remove_From_Queue(int index);
+		bool Start_Next_Queued(void);
+
 	protected:
 
 		int Cost_Per_Tick(void);
