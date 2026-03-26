@@ -888,7 +888,7 @@ GameType Select_Serial_Dialog( void )
 	*/
 	int d_dialog_w = 160 * RESFACTOR;								// dialog width
 	int d_dialog_h = 94 * RESFACTOR;								// dialog height
-	int d_dialog_x = ((320 * RESFACTOR - d_dialog_w) / 2);	// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);	// dialog x-coord
 	int d_dialog_y = 80*RESFACTOR;
 //	int d_dialog_y = ((136 * RESFACTOR - d_dialog_h) / 2);	// dialog y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);	// center x-coord
@@ -1625,7 +1625,7 @@ static int Com_Settings_Dialog( SerialSettingsType *settings )
 	*/
 	int d_dialog_w = 320 * RESFACTOR;									// dialog width
 	int d_dialog_h = 200 * RESFACTOR;									// dialog height
-	int d_dialog_x = ((320 * RESFACTOR - d_dialog_w) / 2);		// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);		// dialog x-coord
 	int d_dialog_y = ((200 * RESFACTOR - d_dialog_h) / 2);		// dialog y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 
@@ -2915,7 +2915,7 @@ int Com_Scenario_Dialog(bool skirmish)
 	........................................................................*/
 	int d_dialog_w = 320 * RESFACTOR;									// dialog width
 	int d_dialog_h = 200 * RESFACTOR;									// dialog height
-	int d_dialog_x = ((320 * RESFACTOR - d_dialog_w) / 2);		// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);		// dialog x-coord
 	int d_dialog_y = ((200 * RESFACTOR - d_dialog_h) / 2);		// dialog y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 
@@ -4796,7 +4796,7 @@ int Com_Show_Scenario_Dialog(void)
 	........................................................................*/
 	int d_dialog_w = 320 * RESFACTOR;									// dialog width
 	int d_dialog_h = 200 * RESFACTOR;									// dialog height
-	int d_dialog_x = ((320 * RESFACTOR - d_dialog_w) / 2);		// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);		// dialog x-coord
 	int d_dialog_y = ((200 * RESFACTOR - d_dialog_h) / 2);		// dialog y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 
@@ -6337,7 +6337,7 @@ static int Phone_Dialog (void)
 	........................................................................*/
 	int d_dialog_w = 280 * RESFACTOR;									// dialog width
 	int d_dialog_h = 160 * RESFACTOR;									// dialog height
-	int d_dialog_x = ((320 * RESFACTOR - d_dialog_w) / 2);		// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);		// dialog x-coord
 	int d_dialog_y = ((200 * RESFACTOR - d_dialog_h) / 2);		// dialog y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 
@@ -6908,7 +6908,7 @@ static int Edit_Phone_Dialog (PhoneEntryClass *phone)
 	........................................................................*/
 	int d_dialog_w = 230 * RESFACTOR;									// dialog width
 	int d_dialog_h = 110 * RESFACTOR;									// dialog height
-	int d_dialog_x = ((320 * RESFACTOR - d_dialog_w) / 2);		// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);		// dialog x-coord
 	int d_dialog_y = ((136 * RESFACTOR - d_dialog_h) / 2);		// dialog y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 

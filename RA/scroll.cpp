@@ -101,7 +101,7 @@ void ScrollClass::AI(KeyNumType &input, int x, int y)
 	**	WASD keyboard scrolling -- check if keys are held down for smooth continuous scroll.
 	*/
 	if (Keyboard->Down(KN_W) || Keyboard->Down(KN_A) || Keyboard->Down(KN_S) || Keyboard->Down(KN_D)) {
-		int distance = 0x0020 * RESFACTOR;
+		int distance = 0x0060 * RESFACTOR;
 		if (Keyboard->Down(KN_W)) {
 			Map.Scroll_Map(DIR_N, distance, true);
 			player_scrolled = true;

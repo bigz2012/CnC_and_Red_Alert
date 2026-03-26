@@ -211,6 +211,14 @@ class BuildingClass : public TechnoClass
 		*/
 		CDTimerClass<FrameTimerClass> PlacementDelay;
 
+		/*
+		**	Rally point for production buildings. When set, newly produced
+		**	units will move to this target after exiting the building.
+		**	RallyShowUntil is the frame number when the visual indicator expires.
+		*/
+		TARGET RallyPoint;
+		unsigned int RallyShowUntil;
+
 		/*---------------------------------------------------------------------
 		**	Constructors, Destructors, and overloaded operators.
 		*/

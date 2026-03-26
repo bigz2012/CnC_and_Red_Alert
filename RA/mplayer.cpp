@@ -78,7 +78,7 @@ GameType Select_MPlayer_Game (void)
 	int d_dialog_h = 78 *RESFACTOR;
 	int d_dialog_y = 90 * RESFACTOR;
 #endif
-	int d_dialog_x = (((320*RESFACTOR) - d_dialog_w) / 2);
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);
 
 	int d_txt6_h = 7 *RESFACTOR;

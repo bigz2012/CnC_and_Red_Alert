@@ -55,7 +55,7 @@ CREATEGAMEINFO WOL_CreateGame_Dialog( WolapiObject* pWO )
 	*/
 	int d_dialog_w = 150 * RESFACTOR;											// dialog width
 	int d_dialog_h = 135 * RESFACTOR;											// dialog height
-	int d_dialog_x = (((320 * RESFACTOR) - d_dialog_w) / 2);
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);
 	int d_dialog_y = (((200 * RESFACTOR) - d_dialog_h) / 2);
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// coord of x-center
 

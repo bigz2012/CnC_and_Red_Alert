@@ -81,6 +81,7 @@
 
 #include	"function.h"
 #include	"vortex.h"
+#include	<SDL.h>
 
 /***********************************************************************************************
  * CellClass::CellClass -- Constructor for cell objects.                                       *
@@ -1179,6 +1180,33 @@ void CellClass::Draw_It(int x, int y, bool objects) const
 			if (IsFlagged) {
 				void const * flag_remap = HouseClass::As_Pointer(Owner)->Remap_Table(false, REMAP_NORMAL);
 				CC_Draw_Shape(MFCD::Retrieve("FLAGFLY.SHP"), Frame % 14, x+(ICON_PIXEL_W/2), y+(ICON_PIXEL_H/2), WINDOW_TACTICAL, SHAPE_CENTER|SHAPE_GHOST|SHAPE_FADING, flag_remap, DisplayClass::UnitShadow);
+			}
+
+			/*
+			**	Draw rally point indicator if any player building has a rally here
+			**	and the display timer hasn't expired.
+			*/
+			{
+				CELL this_cell = Cell_Number();
+				for (int bi = 0; bi < Buildings.Count(); bi++) {
+					BuildingClass * bld = Buildings.Ptr(bi);
+					if (bld && bld->IsActive && bld->House == PlayerPtr
+						&& bld->RallyPoint != TARGET_NONE
+						&& ::As_Cell(bld->RallyPoint) == this_cell
+						&& SDL_GetTicks() < bld->RallyShowUntil)
+					{
+						/* Draw a pulsing green diamond at cell center */
+						int cx = x + (ICON_PIXEL_W / 2);
+						int cy = y + (ICON_PIXEL_H / 2);
+						int pulse = 4 + ((Frame / 2) % 5);  /* size 4-8, faster pulse */
+						int color = 10;  /* bright green in game palette */
+						LogicPage->Draw_Line(cx, cy - pulse, cx + pulse, cy, color);
+						LogicPage->Draw_Line(cx + pulse, cy, cx, cy + pulse, color);
+						LogicPage->Draw_Line(cx, cy + pulse, cx - pulse, cy, color);
+						LogicPage->Draw_Line(cx - pulse, cy, cx, cy - pulse, color);
+						break;
+					}
+				}
 			}
 
 	#ifdef CHEAT_KEYS

@@ -1387,7 +1387,7 @@ static int Net_Join_Dialog(void)
 	//------------------------------------------------------------------------
 		int d_dialog_w = 320 *RESFACTOR;											// dialog width
 		int d_dialog_h = 200 *RESFACTOR;											// dialog height
-		int d_dialog_x = ((320*RESFACTOR - d_dialog_w) / 2);				// dialog x-coord
+		int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);				// dialog x-coord
 		int d_dialog_y = ((200*RESFACTOR - d_dialog_h) / 2);				// centered y-coord
 		int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 
@@ -4044,7 +4044,7 @@ static int Net_New_Dialog(void)
 	//------------------------------------------------------------------------
 	int d_dialog_w = 320 *RESFACTOR;											// dialog width
 	int d_dialog_h = 200 *RESFACTOR;											// dialog height
-	int d_dialog_x = ((320 *RESFACTOR- d_dialog_w) / 2);				// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);				// dialog x-coord
 	int d_dialog_y = ((200 *RESFACTOR- d_dialog_h) / 2);				// centered y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 
@@ -6142,7 +6142,7 @@ static int Net_Fake_New_Dialog(void)
 	//------------------------------------------------------------------------
 	int d_dialog_w = 120 *RESFACTOR;											// dialog width
 	int d_dialog_h = 80 *RESFACTOR;											// dialog height
-	int d_dialog_x = ((320 *RESFACTOR- d_dialog_w) / 2);				// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);				// dialog x-coord
 	int d_dialog_y = ((200 *RESFACTOR- d_dialog_h) / 2);				// centered y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 
@@ -6933,7 +6933,7 @@ static int Net_Fake_Join_Dialog(void)
 	//------------------------------------------------------------------------
 		int d_dialog_w = 120 *RESFACTOR;											// dialog width
 		int d_dialog_h = 80 *RESFACTOR;											// dialog height
-		int d_dialog_x = ((320*RESFACTOR - d_dialog_w) / 2);				// dialog x-coord
+		int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);				// dialog x-coord
 		int d_dialog_y = ((200*RESFACTOR - d_dialog_h) / 2);				// centered y-coord
 		int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 

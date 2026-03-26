@@ -224,7 +224,7 @@ bool Receive_Remote_File ( char *file_name, unsigned int file_length, int gamety
 	*/
 	int d_dialog_w = 200 *RESFACTOR;											// dialog width
 	int d_dialog_h = 90*RESFACTOR;											// dialog height
-	int d_dialog_x = ((320*RESFACTOR - d_dialog_w) / 2);				// dialog x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);				// dialog x-coord
 	int d_dialog_y = ((200*RESFACTOR - d_dialog_h) / 2);				// centered y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// center x-coord
 

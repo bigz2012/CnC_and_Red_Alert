@@ -117,7 +117,7 @@ int LoadOptionsClass::Process(void)
 	*/
 	int d_dialog_w = 250 * RESFACTOR;											// dialog width
 	int d_dialog_h = 156 * RESFACTOR;											// dialog height
-	int d_dialog_x = (((320 * RESFACTOR) - d_dialog_w) / 2);				// centered x-coord
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);				// centered x-coord
 	int d_dialog_y = (((200 * RESFACTOR) - d_dialog_h) / 2);				// centered y-coord
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// coord of x-center
 

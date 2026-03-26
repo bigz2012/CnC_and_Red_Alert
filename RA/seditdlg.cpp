@@ -103,7 +103,7 @@ const char* SimpleEditDlgClass::Show()
 	int d_dialog_h = szPrompt2 ? ( 29 * RESFACTOR ) + 2 * d_gap_y + 2 * y_margin : ( 19 * RESFACTOR ) + d_gap_y + 2 * y_margin;
 	if( szTitle )
 		d_dialog_h += 10 * RESFACTOR + 2 * d_gap_y;
-	int d_dialog_x = (((320 * RESFACTOR) - d_dialog_w) / 2);
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);
 	int d_dialog_y = (((200 * RESFACTOR) - d_dialog_h) / 2);
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);		// coord of x-center
 

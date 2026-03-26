@@ -925,9 +925,9 @@ void AircraftClass::AI(void)
 	**	between flying level and ground level, it will be moved into the appropriate render
 	**	layer.
 	*/
-	if (Landing_Takeoff_AI()) {
-		return;
-	}
+	Landing_Takeoff_AI();
+	/* Don't early-return -- allow mission processing during landing/takeoff
+	** so helicopters remain responsive to commands while changing altitude. */
 
 	/*
 	**	Always flag the map draw process to occur if there is an aircraft in the view.
@@ -4027,7 +4027,8 @@ bool AircraftClass::Landing_Takeoff_AI(void)
 
 		if (IsLanding) {
 			Mark(MARK_UP);
-			if (Height) Height -= Pixel_To_Lepton(1);
+			if (Height) Height -= Pixel_To_Lepton(2);
+			if (Height < 0) Height = 0;
 			if (Height <= 0) {
 				Height = 0;
 				IsLanding = false;
@@ -4063,7 +4064,7 @@ bool AircraftClass::Landing_Takeoff_AI(void)
 		if (IsTakingOff) {
 			Mark(MARK_UP);
 //			Map.Remove(this, layer);
-			Height += Pixel_To_Lepton(1);
+			Height += Pixel_To_Lepton(2);
 			if (Height >= FLIGHT_LEVEL) {
 				Height = FLIGHT_LEVEL;
 				IsTakingOff = false;

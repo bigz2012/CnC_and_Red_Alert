@@ -108,6 +108,7 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include	"function.h"
+#include	<SDL.h>
 
 
 enum SAMState {
@@ -833,6 +834,24 @@ void BuildingClass::AI(void)
 {
 	assert(Buildings.ID(this) == ID);
 	assert(IsActive);
+
+	/*
+	**	Force rally point cell to redraw while the indicator is visible.
+	*/
+	if (RallyPoint != TARGET_NONE && House == PlayerPtr && RallyShowUntil != 0) {
+		CELL rcell = ::As_Cell(RallyPoint);
+		unsigned int now = SDL_GetTicks();
+		if (now < RallyShowUntil) {
+			/* Keep redrawing while indicator is visible */
+			Map[rcell].Redraw_Objects(true);
+		} else if (now < RallyShowUntil + 500) {
+			/* Grace period: keep forcing full redraws for 500ms after expiry
+			** to ensure the diamond is fully erased from all buffers. */
+			Map[rcell].Redraw_Objects(true);
+		} else {
+			RallyShowUntil = 0;
+		}
+	}
 
 	/*
 	**	Process building animation state changes. Transition to a following state
@@ -1590,7 +1609,9 @@ BuildingClass::BuildingClass(StructType type, HousesType house) :
 	WhomToRepay(TARGET_NONE),
 	AnimToTrack(TARGET_NONE),
 	LastStrength(0),
-	PlacementDelay(0)
+	PlacementDelay(0),
+	RallyPoint(TARGET_NONE),
+	RallyShowUntil(0)
 {
 	House->Tracking_Add(this);
 	IsSecondShot = !Class->Is_Two_Shooter();
@@ -1809,9 +1830,24 @@ void BuildingClass::Active_Click_With(ActionType action, CELL cell)
 		Player_Assign_Mission(MISSION_ATTACK, ::As_Target(cell));
 	}
 
-	if (action == ACTION_MOVE && *this == STRUCT_CONST) {
-		OutList.Add(EventClass(EventClass::ARCHIVE, TargetClass(this), TargetClass(cell)));
-		OutList.Add(EventClass(EventClass::SELL, TargetClass(this)));
+	if (action == ACTION_MOVE) {
+		if (*this == STRUCT_CONST) {
+			OutList.Add(EventClass(EventClass::ARCHIVE, TargetClass(this), TargetClass(cell)));
+			OutList.Add(EventClass(EventClass::SELL, TargetClass(this)));
+		} else if (Class->Is_Factory()) {
+			/*
+			**	Set rally point for production buildings. Newly produced
+			**	units will move to this cell after exiting the building.
+			*/
+			/* Clear old rally point cell redraw */
+			if (RallyPoint != TARGET_NONE) {
+				Map[::As_Cell(RallyPoint)].Redraw_Objects();
+			}
+			RallyPoint = ::As_Target(cell);
+			RallyShowUntil = SDL_GetTicks() + 5000;  /* 5 seconds in milliseconds */
+			/* Trigger redraw on new rally point cell */
+			Map[cell].Redraw_Objects();
+		}
 	}
 }
 
@@ -2030,11 +2066,15 @@ int BuildingClass::Exit_Object(TechnoClass * base)
 							base->Assign_Mission(MISSION_MOVE);
 
 							/*
-							**	When disembarking from a transport then guard an area around the
-							**	center of the base.
+							**	If rally point is set, send unit there. Otherwise use
+							**	default exit cell / guard area behavior.
 							*/
-							base->Assign_Destination(::As_Target(cell));
-							if (House->IQ >= Rule.IQGuardArea) {
+							if (RallyPoint != TARGET_NONE) {
+								base->Assign_Destination(RallyPoint);
+							} else {
+								base->Assign_Destination(::As_Target(cell));
+							}
+							if (RallyPoint == TARGET_NONE && House->IQ >= Rule.IQGuardArea) {
 								base->Assign_Mission(MISSION_GUARD_AREA);
 								base->ArchiveTarget = ::As_Target(House->Where_To_Go((FootClass *)base));
 							}
@@ -2065,11 +2105,15 @@ int BuildingClass::Exit_Object(TechnoClass * base)
 							base->Assign_Mission(MISSION_MOVE);
 
 							/*
-							**	When disembarking from a transport then guard an area around the
-							**	center of the base.
+							**	If rally point is set, send unit there. Otherwise use
+							**	default exit cell / guard area behavior.
 							*/
-							base->Assign_Destination(::As_Target(cell));
-							if (House->IQ >= Rule.IQGuardArea) {
+							if (RallyPoint != TARGET_NONE) {
+								base->Assign_Destination(RallyPoint);
+							} else {
+								base->Assign_Destination(::As_Target(cell));
+							}
+							if (RallyPoint == TARGET_NONE && House->IQ >= Rule.IQGuardArea) {
 								base->Assign_Mission(MISSION_GUARD_AREA);
 								base->ArchiveTarget = ::As_Target(House->Where_To_Go((FootClass *)base));
 							}
@@ -2690,6 +2734,14 @@ ActionType BuildingClass::What_Action(CELL cell) const
 
 	if (action == ACTION_MOVE && (*this != STRUCT_CONST || !Rule.IsMCVDeploy)) {
 		action = ACTION_NONE;
+	}
+
+	/*
+	**	Production buildings (except Construction Yard) can set rally
+	**	points via right-click on map.
+	*/
+	if (action == ACTION_NONE && *this != STRUCT_CONST && Class->Is_Factory() && House->IsHuman) {
+		action = ACTION_MOVE;
 	}
 
 	/*

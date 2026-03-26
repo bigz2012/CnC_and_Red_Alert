@@ -237,7 +237,7 @@ void MPGSettings::Dialog(void)
 	//	Dialog & button dimensions
 	int d_dialog_w = 200 *RESFACTOR;
 	int d_dialog_h = 100 *RESFACTOR;
-	int d_dialog_x = (((320*RESFACTOR) - d_dialog_w) / 2);
+	int d_dialog_x = ((ScreenWidth - d_dialog_w) / 2);
 	int d_dialog_y = 70 * RESFACTOR;
 	int d_dialog_cx = d_dialog_x + (d_dialog_w / 2);
 
